@@ -1,20 +1,96 @@
-import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Card from './card';
-function App(props) {
-  const data = [
-    { id: 1, name: "Samsung M10s" , title: "Samsung M10s", description: "Inclusive of all taxes Fastest delivery: Saturday, March 27 Order within 26 mins Details", price: "16,000", image:"download.jpeg"},
-    { id: 2, name: "Redmi Note7", title: "Redmi Note7" , description: " Inclusive of all taxes Fastest delivery: Saturday, March 27 Order within 26 mins Details ", price: "15000", image:"download.jpeg"},
-    { id: 3, name: "One plus" , title:"One plus", description: "Inclusive of all taxes Fastest delivery: Saturday, March 27 Order within 26 mins Details  ", price: "16000", image:"download.jpeg"},
-    { id: 4, name: "Apple iphone8s" , title:"Apple iphone8s", description: "Inclusive of all taxes Fastest delivery: Saturday, March 27 Order within 26 mins Details  ", price: "16000", image:"download.jpeg"},
-  ];
-  return (
-    <div className="App">
-      {data.map((item,index) => {
-        return <Card key={data.id} title={item.title} description={item.description} image={item.image} price = {item.price} />
-      })}
-    </div>
-  );
+import React, { Component } from 'react'
+import produclist from './productlist'
+import { Container } from 'react-bootstrap'
+import Filters from './filter'
+import {Row,Card} from 'react-bootstrap'
+export default class App extends Component {
+
+
+
+state = {
+data: [],
+minPrice: 0,
+maxPrice: 18000,
+selectedCategories: [],
 }
 
-export default App;
+componentDidMount = () => {
+this.setState({
+  data: produclist
+})
+}
+
+minPriceChange = (val) => {
+this.setState({
+  minPrice: val
+})
+}
+maxPriceChange = (val) => {
+this.setState({
+  maxPrice: val
+})
+}
+
+getCategoriesList = () => {
+const result = [];
+this.state.data.forEach(item => {
+  if(!result.includes(item.category))
+    result.push(item.category)
+})
+
+return result;
+}
+
+onCategoryClick = (category) => {
+console.log(category)
+this.setState(prevState => {
+  const isPresent = prevState.selectedCategories.includes(category);
+  let result = [];
+  if(isPresent) {
+    result = prevState.selectedCategories.filter(item => item !== category);
+  } else {
+    result = prevState.selectedCategories.concat(category)
+  }
+
+  return {
+    selectedCategories: result
+  }
+})
+}
+  render() {
+    return (
+      <Container>
+
+      <Filters minPrice={this.state.minPrice} maxPrice={this.state.maxPrice} 
+      data={this.getCategoriesList()}
+      selectedCategories={this.state.selectedCategories}
+      onMinPriceChange={this.minPriceChange}
+      onMaxPriceChange={this.maxPriceChange}
+      val = {this.onCategoryClick}
+      />
+       <Row>
+
+       {
+         !this.state.selectedCategories.length ? 
+         this.state.data.filter((item => this.state.minPrice && this.state.maxPrice ? 
+         item.price >= this.state.minPrice && 
+         item.price <= this.state.maxPrice : true))
+         .map((item,index)=> {
+           return <Card key={index} category={item.category} title={item.title} price = {item.price} image = {item.image} />;
+         }) :
+         this.state.data.filter((item => this.state.selectedCategories.length ?
+         item.price >= this.state.minPrice && 
+         item.price <= this.state.maxPrice && 
+         this.state.selectedCategories.includes(item.category) : true))
+         .map((item,index)=> {
+           return <Card key={index} category={item.category} title={item.title} price = {item.price} image = {item.image} />;
+         }) 
+         }
+ 
+       </Row>
+    
+     
+    </Container>
+    )
+  }
+}
